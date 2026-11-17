@@ -1,6 +1,19 @@
 """A beginner-friendly phishing risk checker."""
 
 
+WARNING_SIGN_QUESTIONS = [
+    ("Unexpected message", "Was this message unexpected?"),
+    ("Unknown or suspicious sender", "Is the sender unknown or suspicious?"),
+    ("Urgent or threatening language", "Does it use urgent or threatening language?"),
+    (
+        "Request for sensitive information",
+        "Does it request a password, credit card number, or other sensitive information?",
+    ),
+    ("Suspicious or misleading link", "Does it contain a suspicious or misleading link?"),
+    ("Unexpected attachment", "Does it contain an unexpected attachment?"),
+]
+
+
 def ask_yes_no(question):
     """Ask a question until the user enters yes or no."""
     while True:
@@ -14,9 +27,9 @@ def ask_yes_no(question):
 
 def get_risk_rating(score):
     """Convert a phishing warning score into a simple risk rating."""
-    if score >= 5:
+    if score >= 4:
         return "high"
-    if score >= 3:
+    if score >= 2:
         return "medium"
     return "low"
 
@@ -24,31 +37,44 @@ def get_risk_rating(score):
 def assess_email():
     """Ask about common warning signs and return the risk rating."""
     print("Phishing Risk Analyzer")
-    print("Answer a few questions about the suspicious email.")
+    print("Answer a few questions about the suspicious email.\n")
 
-    questions = [
-        ("Did the email ask you to click a link?", 2),
-        ("Did it ask for a password, payment, or other personal information?", 3),
-        ("Does it create a strong sense of urgency or threaten you?", 2),
-        ("Is the sender unfamiliar or does the address look unusual?", 2),
-        ("Does it contain an unexpected attachment?", 2),
-    ]
-
-    score = 0
-    for question, points in questions:
+    detected_warning_signs = []
+    for warning_sign, question in WARNING_SIGN_QUESTIONS:
         if ask_yes_no(question):
-            score += points
+            detected_warning_signs.append(warning_sign)
 
-    rating = get_risk_rating(score)
-    print(f"\nPhishing risk: {rating.upper()}")
+    risk_score = len(detected_warning_signs)
+    risk_level = get_risk_rating(risk_score)
+    print("\n--- Analysis result ---")
+    print(f"Risk score: {risk_score}/{len(WARNING_SIGN_QUESTIONS)}")
+    print(f"Risk level: {risk_level.upper()}")
+    print("Warning signs detected:")
+    if detected_warning_signs:
+        for warning_sign in detected_warning_signs:
+            print(f"- {warning_sign}")
+    else:
+        print("- None")
+
+    print("\nRecommendation:")
+    rating = risk_level
     if rating == "high":
         print("Do not click links, open attachments, or reply. Report the email.")
     elif rating == "medium":
         print("Be careful. Verify the sender another way before taking action.")
     else:
         print("No major warning signs were found, but stay cautious.")
-    return rating
+    return risk_score, risk_level, detected_warning_signs
+
+
+def main():
+    """Analyze messages until the user chooses to stop."""
+    while True:
+        assess_email()
+        if not ask_yes_no("\nWould you like to analyze another message?"):
+            print("Stay safe online!")
+            break
 
 
 if __name__ == "__main__":
-    assess_email()
+    main()
